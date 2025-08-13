@@ -30,31 +30,48 @@ defmodule Cards do
     shuffledShoe = shuffle(shoe)
     shuffledShoe
   end
-
-  def containsRank?(shoe, request) do
-    Enum.any?(shoe, fn card ->
-      String.starts_with?(card, request)
-    end)
-  end
-
-  @spec burnCards(list()) :: list() | {:error, <<_::280>>}
   def burnCards(shoe) do
     case List.pop_at(shoe, 0) do
       {nil, []} -> {:error, "There are no more cards in the deck"}
-      {card, rest} -> IO.puts("Burnt card: #{card}")
-      rest
+      {card, rest} ->
+        rest
     end
   end
 
+  def dealCards(shoe, numberOfCardsToDeal) do
+    {hand, rest} = Enum.split(shoe, numberOfCardsToDeal)
+    {hand, rest}
+  end
+
+  def showCommunityCards(shoe, numberOfCommunityCards) do
+    {communityCards, rest} = Enum.split(shoe, numberOfCommunityCards)
+    {communityCards, rest}
+  end
+
+
+  #iex -S mix to run it
   def game do
     suits = ["♥", "♦", "♣", "♠"]
     ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+    handSize = 2
+    communityCardsSize = 5
+
     salute()
-    numberOfDecks = convertTextToNumber(IO.gets("> ") |> String.trim())
+    numberOfDecks = 1 # convertTextToNumber(IO.gets("> ") |> String.trim())
 
     case burnCards(createShoe(numberOfDecks, suits, ranks)) do
-      {:error, message} ->
-        IO.puts("Error: #{message}")
+        {:error, message} ->
+          IO.puts("Error: #{message}")
+
+      shoe when is_list(shoe)->
+        {dealerHand, shoe} = dealCards(shoe, handSize)
+        {playerHand, shoe} = dealCards(shoe, handSize)
+
+        IO.puts("Dealer's hand: #{Enum.join(dealerHand, ", ")}")
+        IO.puts("Player's hand: #{Enum.join(playerHand, ", ")}")
+
+        {comunityCards, shoe} = showCommunityCards(shoe, communityCardsSize)
+        IO.puts("Comunity Cards: #{Enum.join(comunityCards, ", ")}")
 
     end
   end
