@@ -9,7 +9,9 @@ defmodule Cards do
   def convertTextToNumber(text) do
     case Integer.parse(text) do
       {number, ""} -> number
-    _ -> :error
+    :error ->
+      IO.puts("Please introduce a valid number")
+      convertTextToNumber(IO.gets("> ") |> String.trim())
     end
   end
 
@@ -48,6 +50,19 @@ defmodule Cards do
     {communityCards, rest}
   end
 
+  #This is a way we can use erlang inside of elixir
+  def saveShoe(shoe, filename) do
+    binary = :erlang.term_to_binary(shoe)
+    File.write(filename, binary)
+  end
+
+  def readPreviousShoe(filename) do
+    case File.read(filename) do
+      {:ok, binary} -> :erlang.binary_to_term binary
+      {:error, reason} -> reason
+    end
+  end
+
 
   #iex -S mix to run it
   def game do
@@ -57,7 +72,7 @@ defmodule Cards do
     communityCardsSize = 5
 
     salute()
-    numberOfDecks = 1 # convertTextToNumber(IO.gets("> ") |> String.trim())
+    numberOfDecks = convertTextToNumber(IO.gets("> ") |> String.trim())
 
     case burnCards(createShoe(numberOfDecks, suits, ranks)) do
         {:error, message} ->
@@ -72,7 +87,7 @@ defmodule Cards do
 
         {comunityCards, shoe} = showCommunityCards(shoe, communityCardsSize)
         IO.puts("Comunity Cards: #{Enum.join(comunityCards, ", ")}")
-
+        saveShoe(shoe, "saved_shoe")
     end
   end
 end
